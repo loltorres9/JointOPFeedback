@@ -1,215 +1,396 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Joint Operations Feedback Viewer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joint Operations Feedback Viewer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-2: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #475569;
+      --accent: #60a5fa;
+    }
 
-<style>
+    * { box-sizing: border-box; }
 
-body{
-font-family:Arial,Helvetica,sans-serif;
-background:#0f172a;
-color:#e2e8f0;
-margin:0;
-padding:40px;
-}
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-h1{
-margin-top:0;
-}
+    .container {
+      max-width: 1400px;
+      margin: auto;
+    }
 
-.container{
-max-width:1200px;
-margin:auto;
-}
+    .card {
+      background: var(--panel);
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
 
-.card{
-background:#1e293b;
-padding:25px;
-border-radius:10px;
-margin-bottom:20px;
-}
+    h1, h2 {
+      margin-top: 0;
+    }
 
-input{
-padding:10px;
-width:300px;
-border-radius:6px;
-border:none;
-margin-bottom:20px;
-}
+    .muted {
+      color: var(--muted);
+    }
 
-table{
-width:100%;
-border-collapse:collapse;
-}
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
 
-th{
-background:#334155;
-text-align:left;
-padding:12px;
-}
+    input, select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      min-width: 240px;
+    }
 
-td{
-padding:10px;
-border-bottom:1px solid #475569;
-}
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
 
-tr:hover{
-background:#334155;
-}
+    .stat-box {
+      background: var(--panel-2);
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid var(--border);
+    }
 
-</style>
+    .stat-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .avg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .avg-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .avg-question {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .avg-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th {
+      background: var(--panel-2);
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 12px 0 0;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
 
-<div class="container">
+    <div class="card">
+      <h1>Joint Operations Feedback</h1>
+      <p class="muted">Live results from the Google Form</p>
 
-<div class="card">
-<h1>Joint Operations Feedback</h1>
-<p>Live results from the Google Form</p>
+      <div class="toolbar">
+        <input type="text" id="search" placeholder="Search..." />
+        <select id="unitFilter">
+          <option value="">All Units</option>
+        </select>
+      </div>
 
-<input type="text" id="search" placeholder="Search..." />
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-title">Total responses</div>
+          <div class="stat-value" id="totalResponses">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Visible responses</div>
+          <div class="stat-value" id="visibleResponses">0</div>
+        </div>
+      </div>
+    </div>
 
-</div>
+    <div class="card">
+      <h2>Average Scores</h2>
+      <p class="muted">
+        Averages are calculated from the currently visible results.
+      </p>
+      <div id="averages" class="avg-grid"></div>
+      <div id="averageEmpty" class="empty" style="display:none;">
+        No numeric questions found in the filtered results.
+      </div>
+    </div>
 
-<div class="card">
+    <div class="card">
+      <h2>Responses</h2>
+      <div class="table-wrap">
+        <table id="table">
+          <thead>
+            <tr id="header"></tr>
+          </thead>
+          <tbody id="body"></tbody>
+        </table>
+      </div>
+    </div>
 
-<table id="table">
+  </div>
 
-<thead>
-<tr id="header"></tr>
-</thead>
+  <script>
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQf8L3Zc_XWlfcoyTnJfFlaiGPjcNyUDXODP12qHF1yQk3_DZJVBCJbWXNRzsgw53TRCn1BCo_VBm4U/pub?output=csv";
 
-<tbody id="body"></tbody>
+    let rows = [];
+    let headers = [];
+    let unitColumnName = "Your Unit?";
 
-</table>
+    function parseCSV(text) {
+      const result = [];
+      let row = [];
+      let current = "";
+      let insideQuotes = false;
 
-</div>
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
 
-</div>
+        if (char === '"') {
+          if (insideQuotes && next === '"') {
+            current += '"';
+            i++;
+          } else {
+            insideQuotes = !insideQuotes;
+          }
+        } else if (char === "," && !insideQuotes) {
+          row.push(current);
+          current = "";
+        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(current);
+          result.push(row);
+          row = [];
+          current = "";
+        } else {
+          current += char;
+        }
+      }
 
-<script>
+      if (current.length > 0 || row.length > 0) {
+        row.push(current);
+        result.push(row);
+      }
 
-const SHEET_CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vQf8L3Zc_XWlfcoyTnJfFlaiGPjcNyUDXODP12qHF1yQk3_DZJVBCJbWXNRzsgw53TRCn1BCo_VBm4U/pub?output=csv";
+      return result.filter(r => r.some(cell => String(cell).trim() !== ""));
+    }
 
-let rows = [];
+    function getUnitColumnIndex() {
+      return headers.findIndex(h => h.trim().toLowerCase() === unitColumnName.toLowerCase());
+    }
 
-function parseCSV(text){
+    function populateUnitFilter() {
+      const select = document.getElementById("unitFilter");
+      const unitIndex = getUnitColumnIndex();
 
-let lines = text.split("\n");
-let result = [];
+      select.innerHTML = '<option value="">All Units</option>';
 
-for(let line of lines){
+      if (unitIndex === -1) return;
 
-let row = [];
-let current = "";
-let insideQuotes = false;
+      const units = [...new Set(
+        rows.slice(1)
+          .map(r => (r[unitIndex] || "").trim())
+          .filter(v => v)
+      )].sort((a, b) => a.localeCompare(b));
 
-for(let char of line){
+      for (const unit of units) {
+        const option = document.createElement("option");
+        option.value = unit;
+        option.textContent = unit;
+        select.appendChild(option);
+      }
+    }
 
-if(char === '"'){
-insideQuotes = !insideQuotes;
-}
+    function isNumericValue(value) {
+      if (value === null || value === undefined) return false;
+      const cleaned = String(value).trim().replace(",", ".");
+      if (cleaned === "") return false;
+      return !Number.isNaN(Number(cleaned));
+    }
 
-else if(char === "," && !insideQuotes){
-row.push(current);
-current = "";
-}
+    function getFilteredRows() {
+      const search = document.getElementById("search").value.toLowerCase().trim();
+      const selectedUnit = document.getElementById("unitFilter").value;
+      const unitIndex = getUnitColumnIndex();
 
-else{
-current += char;
-}
+      return rows.slice(1).filter(row => {
+        const matchesSearch = !search || row.join(" ").toLowerCase().includes(search);
+        const matchesUnit =
+          !selectedUnit ||
+          unitIndex === -1 ||
+          ((row[unitIndex] || "").trim() === selectedUnit);
 
-}
+        return matchesSearch && matchesUnit;
+      });
+    }
 
-row.push(current);
+    function renderTable(filteredRows) {
+      const header = document.getElementById("header");
+      const body = document.getElementById("body");
 
-result.push(row);
+      header.innerHTML = "";
+      body.innerHTML = "";
 
-}
+      for (const h of headers) {
+        const th = document.createElement("th");
+        th.textContent = h;
+        header.appendChild(th);
+      }
 
-return result;
+      for (const row of filteredRows) {
+        const tr = document.createElement("tr");
 
-}
+        for (let i = 0; i < headers.length; i++) {
+          const td = document.createElement("td");
+          td.textContent = row[i] ?? "";
+          tr.appendChild(td);
+        }
 
-function renderTable(data){
+        body.appendChild(tr);
+      }
 
-const header = document.getElementById("header");
-const body = document.getElementById("body");
+      document.getElementById("totalResponses").textContent = Math.max(rows.length - 1, 0);
+      document.getElementById("visibleResponses").textContent = filteredRows.length;
+    }
 
-header.innerHTML = "";
-body.innerHTML = "";
+    function renderAverages(filteredRows) {
+      const averagesEl = document.getElementById("averages");
+      const emptyEl = document.getElementById("averageEmpty");
 
-let headers = data[0];
+      averagesEl.innerHTML = "";
 
-for(let h of headers){
-let th = document.createElement("th");
-th.textContent = h;
-header.appendChild(th);
-}
+      const averageResults = [];
 
-for(let i=1;i<data.length;i++){
+      for (let col = 0; col < headers.length; col++) {
+        if (headers[col].trim().toLowerCase() === unitColumnName.toLowerCase()) continue;
 
-let tr = document.createElement("tr");
+        const numericValues = filteredRows
+          .map(row => row[col])
+          .filter(isNumericValue)
+          .map(v => Number(String(v).trim().replace(",", ".")));
 
-for(let cell of data[i]){
+        if (numericValues.length > 0) {
+          const sum = numericValues.reduce((a, b) => a + b, 0);
+          const avg = sum / numericValues.length;
 
-let td = document.createElement("td");
-td.textContent = cell;
-tr.appendChild(td);
+          averageResults.push({
+            question: headers[col],
+            avg: avg,
+            count: numericValues.length
+          });
+        }
+      }
 
-}
+      if (averageResults.length === 0) {
+        emptyEl.style.display = "block";
+        return;
+      }
 
-body.appendChild(tr);
+      emptyEl.style.display = "none";
 
-}
+      for (const item of averageResults) {
+        const card = document.createElement("div");
+        card.className = "avg-card";
+        card.innerHTML = `
+          <div class="avg-question">${item.question}</div>
+          <div class="avg-value">${item.avg.toFixed(2)}</div>
+          <div class="muted">Based on ${item.count} answer(s)</div>
+        `;
+        averagesEl.appendChild(card);
+      }
+    }
 
-}
+    function applyFilters() {
+      const filteredRows = getFilteredRows();
+      renderTable(filteredRows);
+      renderAverages(filteredRows);
+    }
 
-function filterTable(){
+    async function loadSheet() {
+      const res = await fetch(SHEET_CSV_URL);
+      const text = await res.text();
 
-let search = document
-.getElementById("search")
-.value
-.toLowerCase();
+      rows = parseCSV(text);
+      headers = rows[0] || [];
 
-let filtered = [rows[0]];
+      populateUnitFilter();
+      applyFilters();
+    }
 
-for(let i=1;i<rows.length;i++){
+    document.getElementById("search").addEventListener("input", applyFilters);
+    document.getElementById("unitFilter").addEventListener("change", applyFilters);
 
-let row = rows[i];
-
-if(row.join(" ").toLowerCase().includes(search)){
-filtered.push(row);
-}
-
-}
-
-renderTable(filtered);
-
-}
-
-async function loadSheet(){
-
-let res = await fetch(SHEET_CSV_URL);
-
-let text = await res.text();
-
-rows = parseCSV(text);
-
-renderTable(rows);
-
-}
-
-document
-.getElementById("search")
-.addEventListener("input",filterTable);
-
-loadSheet();
-
-</script>
-
+    loadSheet();
+  </script>
 </body>
 </html>
