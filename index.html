@@ -11,21 +11,22 @@
 
   <style>
     :root {
-      --bg: #0d1117;
-      --panel: #161b22;
-      --panel-2: #1f2630;
-      --panel-3: #0f141b;
-      --text: #e6edf3;
-      --muted: #9aa4b2;
-      --border: #30363d;
-      --accent: #c9a86a;
-      --accent-2: #8f6b2e;
-      --danger: #c95b5b;
-      --warn: #c9a86a;
-      --ok: #6aa37b;
-      --button: #c9a86a;
-      --button-hover: #b79352;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      --bg: #e7eaee;
+      --bg-2: #dfe3e8;
+      --panel: #f7f8fa;
+      --panel-2: #eef1f4;
+      --panel-3: #e5e9ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #cfd6de;
+      --accent: #8c98a8;
+      --accent-2: #6f7a88;
+      --danger: #cf6a6a;
+      --warn: #c8a75f;
+      --ok: #6ea27a;
+      --button: #7f8b99;
+      --button-hover: #6d7886;
+      --shadow: 0 8px 22px rgba(50, 60, 75, 0.08);
     }
 
     * { box-sizing: border-box; }
@@ -35,20 +36,19 @@
       padding: 32px;
       font-family: "Open Sans", Arial, Helvetica, sans-serif;
       background:
-        radial-gradient(circle at top, rgba(201, 168, 106, 0.08), transparent 28%),
-        linear-gradient(180deg, #0b0f14 0%, #0d1117 100%);
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       color: var(--text);
     }
 
     .container {
-      max-width: 1500px;
+      max-width: 1550px;
       margin: auto;
     }
 
     .card {
-      background: linear-gradient(180deg, rgba(31,38,48,0.96) 0%, rgba(22,27,34,0.96) 100%);
+      background: linear-gradient(180deg, rgba(247,248,250,0.98) 0%, rgba(238,241,244,0.98) 100%);
       padding: 24px;
-      border-radius: 14px;
+      border-radius: 16px;
       margin-bottom: 20px;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
@@ -59,18 +59,17 @@
       font-family: "Oswald", Arial, sans-serif;
       letter-spacing: 0.03em;
       text-transform: uppercase;
+      color: #2a3441;
     }
 
     h1 {
-      font-size: 40px;
+      font-size: 38px;
       line-height: 1;
       margin-bottom: 10px;
-      color: #f4efe4;
     }
 
     h2 {
       font-size: 28px;
-      color: #f4efe4;
       margin-bottom: 8px;
     }
 
@@ -96,14 +95,14 @@
     }
 
     select {
-      background: var(--panel-3);
+      background: #ffffff;
       color: var(--text);
       min-width: 220px;
     }
 
     button {
-      background: linear-gradient(180deg, var(--button) 0%, var(--accent-2) 100%);
-      color: #111111;
+      background: linear-gradient(180deg, var(--button) 0%, var(--button-hover) 100%);
+      color: white;
       cursor: pointer;
       min-width: 120px;
       border: none;
@@ -130,7 +129,7 @@
     }
 
     .stat-box {
-      background: linear-gradient(180deg, rgba(15,20,27,0.95) 0%, rgba(31,38,48,0.95) 100%);
+      background: linear-gradient(180deg, #ffffff 0%, var(--panel-2) 100%);
       border-radius: 12px;
       padding: 14px;
       border: 1px solid var(--border);
@@ -149,7 +148,7 @@
       font-size: 26px;
       font-weight: bold;
       font-family: "Oswald", Arial, sans-serif;
-      color: #f4efe4;
+      color: #2a3441;
     }
 
     .gauge-grid {
@@ -160,7 +159,7 @@
     }
 
     .gauge-card {
-      background: linear-gradient(180deg, rgba(15,20,27,0.95) 0%, rgba(31,38,48,0.95) 100%);
+      background: linear-gradient(180deg, #ffffff 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 16px;
@@ -195,7 +194,7 @@
 
     .gauge-bg {
       fill: none;
-      stroke: #202732;
+      stroke: #d8dee6;
       stroke-width: 14;
       stroke-linecap: round;
     }
@@ -207,26 +206,26 @@
     }
 
     .gauge-needle {
-      stroke: #f4efe4;
+      stroke: #2f3946;
       stroke-width: 3;
       stroke-linecap: round;
     }
 
     .gauge-center {
-      fill: #f4efe4;
+      fill: #2f3946;
     }
 
     .gauge-score {
       font-size: 24px;
       font-weight: bold;
-      fill: #f4efe4;
+      fill: #2f3946;
       text-anchor: middle;
       font-family: "Oswald", Arial, sans-serif;
     }
 
     .gauge-sub {
       font-size: 12px;
-      fill: #c7d0da;
+      fill: #6b7280;
       text-anchor: middle;
     }
 
@@ -239,19 +238,20 @@
 
     .table-wrap {
       overflow-x: auto;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid var(--border);
+      background: #fff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 900px;
-      background: rgba(15,20,27,0.5);
+      min-width: 1000px;
+      background: #ffffff;
     }
 
     th {
-      background: #202732;
+      background: #e9edf2;
       text-align: left;
       padding: 12px;
       border-bottom: 1px solid var(--border);
@@ -260,23 +260,58 @@
       font-family: "Oswald", Arial, sans-serif;
       font-size: 15px;
       letter-spacing: 0.02em;
-      color: #f4efe4;
+      color: #2a3441;
       text-transform: uppercase;
     }
 
     td {
       padding: 10px 12px;
       border-bottom: 1px solid var(--border);
-      vertical-align: top;
+      vertical-align: middle;
+      color: var(--text);
     }
 
     tr:hover {
-      background: rgba(201, 168, 106, 0.05);
+      background: rgba(127, 139, 153, 0.06);
     }
 
     .empty {
       color: var(--muted);
       padding: 12px 0 0;
+    }
+
+    .rating-cell {
+      min-width: 160px;
+    }
+
+    .rating-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rating-bar {
+      position: relative;
+      width: 110px;
+      height: 10px;
+      border-radius: 999px;
+      background: #dbe2ea;
+      overflow: hidden;
+      border: 1px solid #cbd4de;
+      flex-shrink: 0;
+    }
+
+    .rating-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .rating-value {
+      font-weight: 700;
+      color: #394554;
+      min-width: 38px;
+      text-align: right;
+      font-size: 13px;
     }
 
     @media (max-width: 700px) {
@@ -381,6 +416,7 @@
 
     const gaugeDefinitions = [
       {
+        key: "mission_satisfaction",
         label: "Mission Satisfaction",
         matchers: [
           "how satisfied were you with the mission",
@@ -388,6 +424,7 @@
         ]
       },
       {
+        key: "performance",
         label: "Performance",
         matchers: [
           "how was your performance throughout the mission",
@@ -395,6 +432,7 @@
         ]
       },
       {
+        key: "difficulty",
         label: "Mission Difficulty",
         matchers: [
           "how would you rate the mission's difficulty level",
@@ -403,6 +441,7 @@
         ]
       },
       {
+        key: "c2",
         label: "C2 Satisfaction",
         matchers: [
           "how satisfied are you with c2 in the mission",
@@ -486,15 +525,21 @@
       });
     }
 
+    function getGaugeColumnIndexes() {
+      const indexes = new Set();
+      for (const gauge of gaugeDefinitions) {
+        const index = findQuestionColumnIndex(gauge.matchers);
+        if (index !== -1) indexes.add(index);
+      }
+      return indexes;
+    }
+
     function parseNumericValue(value) {
       if (value === null || value === undefined) return null;
-
       const cleaned = String(value).trim().replace(",", ".");
       if (cleaned === "") return null;
-
       const num = Number(cleaned);
       if (Number.isNaN(num)) return null;
-
       return num;
     }
 
@@ -504,36 +549,24 @@
       const raw = String(value).trim();
       if (!raw) return null;
 
-      const nativeParsed = new Date(raw);
-      if (!Number.isNaN(nativeParsed.getTime())) {
-        return nativeParsed;
-      }
-
       const dotMatch = raw.match(
         /^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
       );
       if (dotMatch) {
         const [, dd, mm, yyyy, hh = "0", mi = "0", ss = "0"] = dotMatch;
         const year = yyyy.length === 2 ? Number(`20${yyyy}`) : Number(yyyy);
-        return new Date(
-          year,
-          Number(mm) - 1,
-          Number(dd),
-          Number(hh),
-          Number(mi),
-          Number(ss)
-        );
+        return new Date(year, Number(mm) - 1, Number(dd), Number(hh), Number(mi), Number(ss));
       }
 
       const slashMatch = raw.match(
         /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
       );
       if (slashMatch) {
-        let [, a, b, yyyy, hh = "0", mi = "0", ss = "0"] = slashMatch;
+        const [, a, b, yyyy, hh = "0", mi = "0", ss = "0"] = slashMatch;
         const year = yyyy.length === 2 ? Number(`20${yyyy}`) : Number(yyyy);
 
-        let day;
         let month;
+        let day;
 
         if (Number(a) > 12) {
           day = Number(a);
@@ -544,6 +577,11 @@
         }
 
         return new Date(year, month, day, Number(hh), Number(mi), Number(ss));
+      }
+
+      const nativeParsed = new Date(raw);
+      if (!Number.isNaN(nativeParsed.getTime())) {
+        return nativeParsed;
       }
 
       return null;
@@ -575,42 +613,36 @@
     function getMissionForDate(date) {
       if (!date) return null;
 
-      const candidates = [];
-      const baseYear = date.getFullYear();
-      const baseMonth = date.getMonth();
+      const dayOnly = startOfDay(date);
+      const baseYear = dayOnly.getFullYear();
+      const baseMonth = dayOnly.getMonth();
 
-      for (let offset = -2; offset <= 1; offset++) {
+      let bestCandidate = null;
+
+      for (let offset = -3; offset <= 1; offset++) {
         const current = addMonths(baseYear, baseMonth, offset);
-        const next = addMonths(current.year, current.monthIndex, 1);
+        const lastSat = startOfDay(lastSaturdayOfMonth(current.year, current.monthIndex));
 
-        const start = startOfDay(lastSaturdayOfMonth(current.year, current.monthIndex));
-        const nextStart = startOfDay(lastSaturdayOfMonth(next.year, next.monthIndex));
-
-        candidates.push({
-          key: `${current.year}-${String(current.monthIndex + 1).padStart(2, "0")}`,
-          label: missionLabelForMonth(current.year, current.monthIndex),
-          start,
-          nextStart
-        });
-      }
-
-      candidates.sort((a, b) => a.start - b.start);
-
-      for (const candidate of candidates) {
-        if (date >= candidate.start && date < candidate.nextStart) {
-          return candidate;
+        if (lastSat <= dayOnly) {
+          if (!bestCandidate || lastSat > bestCandidate.start) {
+            bestCandidate = {
+              key: `${current.year}-${String(current.monthIndex + 1).padStart(2, "0")}`,
+              label: missionLabelForMonth(current.year, current.monthIndex),
+              start: lastSat
+            };
+          }
         }
       }
 
-      const fallback = addMonths(baseYear, baseMonth, -1);
-      const fallbackStart = startOfDay(lastSaturdayOfMonth(fallback.year, fallback.monthIndex));
-      const fallbackNext = startOfDay(lastSaturdayOfMonth(baseYear, baseMonth));
+      if (bestCandidate) {
+        return bestCandidate;
+      }
 
+      const fallback = addMonths(baseYear, baseMonth, -1);
       return {
         key: `${fallback.year}-${String(fallback.monthIndex + 1).padStart(2, "0")}`,
         label: missionLabelForMonth(fallback.year, fallback.monthIndex),
-        start: fallbackStart,
-        nextStart: fallbackNext
+        start: startOfDay(lastSaturdayOfMonth(fallback.year, fallback.monthIndex))
       };
     }
 
@@ -627,8 +659,7 @@
           date: parsedDate,
           missionKey: mission ? mission.key : "",
           missionLabel: mission ? mission.label : "Unknown",
-          missionStart: mission ? mission.start : null,
-          missionNextStart: mission ? mission.nextStart : null
+          missionStart: mission ? mission.start : null
         };
       });
     }
@@ -673,10 +704,7 @@
 
     function getMissionFilteredRows() {
       const selectedMission = document.getElementById("missionFilter").value;
-
-      return enrichedRows.filter(item => {
-        return !selectedMission || item.missionKey === selectedMission;
-      });
+      return enrichedRows.filter(item => !selectedMission || item.missionKey === selectedMission);
     }
 
     function populateUnitFilter() {
@@ -723,10 +751,34 @@
       });
     }
 
+    function getBarColor(value) {
+      const normalized = (value - gaugeMin) / (gaugeMax - gaugeMin);
+      if (normalized < 0.4) return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+      if (normalized < 0.7) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
+      return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
+    }
+
+    function createRatingBar(value) {
+      const safeValue = clamp(value, gaugeMin, gaugeMax);
+      const percent = ((safeValue - gaugeMin) / (gaugeMax - gaugeMin)) * 100;
+      const color = getBarColor(safeValue);
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "rating-wrap";
+      wrapper.innerHTML = `
+        <div class="rating-bar">
+          <div class="rating-fill" style="width:${percent}%; background:${color};"></div>
+        </div>
+        <div class="rating-value">${safeValue.toFixed(1).replace(".0", "")}/10</div>
+      `;
+      return wrapper;
+    }
+
     function renderTable(filteredItems) {
       const header = document.getElementById("header");
       const body = document.getElementById("body");
       const visibleIndexes = getVisibleColumnIndexes();
+      const gaugeIndexes = getGaugeColumnIndexes();
 
       header.innerHTML = "";
       body.innerHTML = "";
@@ -742,7 +794,15 @@
 
         for (const index of visibleIndexes) {
           const td = document.createElement("td");
-          td.textContent = item.row[index] ?? "";
+          const numericValue = parseNumericValue(item.row[index]);
+
+          if (gaugeIndexes.has(index) && numericValue !== null) {
+            td.className = "rating-cell";
+            td.appendChild(createRatingBar(numericValue));
+          } else {
+            td.textContent = item.row[index] ?? "";
+          }
+
           tr.appendChild(td);
         }
 
