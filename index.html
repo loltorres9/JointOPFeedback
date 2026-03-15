@@ -4,19 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Joint Operations Feedback Viewer</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #1e293b;
-      --panel-2: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --border: #475569;
-      --danger: #ef4444;
-      --warn: #f59e0b;
-      --ok: #22c55e;
-      --button: #2563eb;
-      --button-hover: #1d4ed8;
+      --bg: #0d1117;
+      --panel: #161b22;
+      --panel-2: #1f2630;
+      --panel-3: #0f141b;
+      --text: #e6edf3;
+      --muted: #9aa4b2;
+      --border: #30363d;
+      --accent: #c9a86a;
+      --accent-2: #8f6b2e;
+      --danger: #c95b5b;
+      --warn: #c9a86a;
+      --ok: #6aa37b;
+      --button: #c9a86a;
+      --button-hover: #b79352;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
     }
 
     * { box-sizing: border-box; }
@@ -24,8 +33,10 @@
     body {
       margin: 0;
       padding: 32px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
+      font-family: "Open Sans", Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(201, 168, 106, 0.08), transparent 28%),
+        linear-gradient(180deg, #0b0f14 0%, #0d1117 100%);
       color: var(--text);
     }
 
@@ -35,14 +46,32 @@
     }
 
     .card {
-      background: var(--panel);
+      background: linear-gradient(180deg, rgba(31,38,48,0.96) 0%, rgba(22,27,34,0.96) 100%);
       padding: 24px;
-      border-radius: 12px;
+      border-radius: 14px;
       margin-bottom: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
     }
 
     h1, h2 {
       margin-top: 0;
+      font-family: "Oswald", Arial, sans-serif;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 40px;
+      line-height: 1;
+      margin-bottom: 10px;
+      color: #f4efe4;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #f4efe4;
+      margin-bottom: 8px;
     }
 
     .muted {
@@ -53,65 +82,74 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 16px;
+      margin-top: 18px;
       align-items: center;
     }
 
     select,
     button {
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 11px 14px;
+      border-radius: 10px;
       border: 1px solid var(--border);
       font-size: 14px;
+      font-family: "Open Sans", Arial, sans-serif;
     }
 
     select {
-      background: #0b1220;
+      background: var(--panel-3);
       color: var(--text);
       min-width: 220px;
     }
 
     button {
-      background: var(--button);
-      color: white;
+      background: linear-gradient(180deg, var(--button) 0%, var(--accent-2) 100%);
+      color: #111111;
       cursor: pointer;
       min-width: 120px;
       border: none;
-      transition: background 0.2s ease;
+      font-weight: 700;
+      transition: transform 0.15s ease, filter 0.15s ease;
     }
 
     button:hover {
-      background: var(--button-hover);
+      filter: brightness(1.03);
+      transform: translateY(-1px);
     }
 
     button:disabled {
-      opacity: 0.7;
+      opacity: 0.75;
       cursor: wait;
+      transform: none;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
-      margin-top: 16px;
+      margin-top: 18px;
     }
 
     .stat-box {
-      background: var(--panel-2);
-      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(15,20,27,0.95) 0%, rgba(31,38,48,0.95) 100%);
+      border-radius: 12px;
       padding: 14px;
       border: 1px solid var(--border);
     }
 
     .stat-title {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
     }
 
     .stat-value {
       font-size: 26px;
       font-weight: bold;
+      font-family: "Oswald", Arial, sans-serif;
+      color: #f4efe4;
     }
 
     .gauge-grid {
@@ -122,9 +160,9 @@
     }
 
     .gauge-card {
-      background: var(--panel-2);
+      background: linear-gradient(180deg, rgba(15,20,27,0.95) 0%, rgba(31,38,48,0.95) 100%);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
       min-height: 270px;
       display: flex;
@@ -135,8 +173,9 @@
       font-size: 14px;
       color: var(--muted);
       line-height: 1.35;
-      min-height: 40px;
+      min-height: 42px;
       margin-bottom: 10px;
+      font-weight: 700;
     }
 
     .gauge-wrap {
@@ -156,7 +195,7 @@
 
     .gauge-bg {
       fill: none;
-      stroke: #16213a;
+      stroke: #202732;
       stroke-width: 14;
       stroke-linecap: round;
     }
@@ -168,25 +207,26 @@
     }
 
     .gauge-needle {
-      stroke: #ffffff;
+      stroke: #f4efe4;
       stroke-width: 3;
       stroke-linecap: round;
     }
 
     .gauge-center {
-      fill: #ffffff;
+      fill: #f4efe4;
     }
 
     .gauge-score {
       font-size: 24px;
       font-weight: bold;
-      fill: #ffffff;
+      fill: #f4efe4;
       text-anchor: middle;
+      font-family: "Oswald", Arial, sans-serif;
     }
 
     .gauge-sub {
       font-size: 12px;
-      fill: #cbd5e1;
+      fill: #c7d0da;
       text-anchor: middle;
     }
 
@@ -194,25 +234,34 @@
       font-size: 12px;
       fill: var(--muted);
       text-anchor: middle;
+      font-weight: 700;
     }
 
     .table-wrap {
       overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 900px;
+      background: rgba(15,20,27,0.5);
     }
 
     th {
-      background: var(--panel-2);
+      background: #202732;
       text-align: left;
       padding: 12px;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
+      font-family: "Oswald", Arial, sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      color: #f4efe4;
+      text-transform: uppercase;
     }
 
     td {
@@ -222,7 +271,7 @@
     }
 
     tr:hover {
-      background: rgba(255,255,255,0.03);
+      background: rgba(201, 168, 106, 0.05);
     }
 
     .empty {
@@ -252,6 +301,10 @@
       button {
         width: 100%;
       }
+
+      h1 {
+        font-size: 32px;
+      }
     }
   </style>
 </head>
@@ -263,7 +316,7 @@
       <p class="muted">Live results from the Google Form</p>
 
       <div class="toolbar">
-        <select id="periodFilter">
+        <select id="missionFilter">
           <option value="">All Missions</option>
         </select>
 
@@ -284,15 +337,15 @@
           <div class="stat-value" id="visibleResponses">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-title">Selected period</div>
-          <div class="stat-value" id="selectedPeriod" style="font-size:18px;">All Periods</div>
+          <div class="stat-title">Selected mission</div>
+          <div class="stat-value" id="selectedMission" style="font-size:18px;">All Missions</div>
         </div>
       </div>
     </div>
 
     <div class="card">
       <h2>Average Scores</h2>
-      <p class="muted">These gauges show the average score of the currently selected unit and period.</p>
+      <p class="muted">These gauges show the average score of the currently selected unit and mission.</p>
       <div id="gauges" class="gauge-grid"></div>
       <div id="gaugeEmpty" class="empty" style="display:none;">
         No numeric data found for the selected responses.
@@ -508,7 +561,7 @@
       return { year: d.getFullYear(), monthIndex: d.getMonth() };
     }
 
-    function periodLabelForMonth(year, monthIndex) {
+    function missionLabelForMonth(year, monthIndex) {
       return new Date(year, monthIndex, 1).toLocaleString("en-US", {
         month: "short",
         year: "numeric"
@@ -519,11 +572,7 @@
       return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
     }
 
-    function endOfDay(date) {
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-    }
-
-    function getPeriodForDate(date) {
+    function getMissionForDate(date) {
       if (!date) return null;
 
       const candidates = [];
@@ -535,30 +584,33 @@
         const next = addMonths(current.year, current.monthIndex, 1);
 
         const start = startOfDay(lastSaturdayOfMonth(current.year, current.monthIndex));
-        const end = endOfDay(lastSaturdayOfMonth(next.year, next.monthIndex));
+        const nextStart = startOfDay(lastSaturdayOfMonth(next.year, next.monthIndex));
 
         candidates.push({
           key: `${current.year}-${String(current.monthIndex + 1).padStart(2, "0")}`,
-          label: periodLabelForMonth(current.year, current.monthIndex),
+          label: missionLabelForMonth(current.year, current.monthIndex),
           start,
-          end
+          nextStart
         });
       }
 
       candidates.sort((a, b) => a.start - b.start);
 
       for (const candidate of candidates) {
-        if (date >= candidate.start && date <= candidate.end) {
+        if (date >= candidate.start && date < candidate.nextStart) {
           return candidate;
         }
       }
 
-      const fallbackPrev = addMonths(baseYear, baseMonth, -1);
+      const fallback = addMonths(baseYear, baseMonth, -1);
+      const fallbackStart = startOfDay(lastSaturdayOfMonth(fallback.year, fallback.monthIndex));
+      const fallbackNext = startOfDay(lastSaturdayOfMonth(baseYear, baseMonth));
+
       return {
-        key: `${fallbackPrev.year}-${String(fallbackPrev.monthIndex + 1).padStart(2, "0")}`,
-        label: periodLabelForMonth(fallbackPrev.year, fallbackPrev.monthIndex),
-        start: startOfDay(lastSaturdayOfMonth(fallbackPrev.year, fallbackPrev.monthIndex)),
-        end: endOfDay(lastSaturdayOfMonth(baseYear, baseMonth))
+        key: `${fallback.year}-${String(fallback.monthIndex + 1).padStart(2, "0")}`,
+        label: missionLabelForMonth(fallback.year, fallback.monthIndex),
+        start: fallbackStart,
+        nextStart: fallbackNext
       };
     }
 
@@ -568,49 +620,49 @@
       enrichedRows = rows.slice(1).map((row) => {
         const timestampValue = timestampIndex >= 0 ? row[timestampIndex] : "";
         const parsedDate = parseResponseDate(timestampValue);
-        const period = getPeriodForDate(parsedDate);
+        const mission = getMissionForDate(parsedDate);
 
         return {
           row,
           date: parsedDate,
-          periodKey: period ? period.key : "",
-          periodLabel: period ? period.label : "Unknown",
-          periodStart: period ? period.start : null,
-          periodEnd: period ? period.end : null
+          missionKey: mission ? mission.key : "",
+          missionLabel: mission ? mission.label : "Unknown",
+          missionStart: mission ? mission.start : null,
+          missionNextStart: mission ? mission.nextStart : null
         };
       });
     }
 
-    function populatePeriodFilter() {
-      const select = document.getElementById("periodFilter");
+    function populateMissionFilter() {
+      const select = document.getElementById("missionFilter");
       const currentValue = select.value;
 
-      const uniquePeriods = [];
+      const uniqueMissions = [];
       const seen = new Set();
 
       enrichedRows
-        .filter(item => item.periodKey)
+        .filter(item => item.missionKey)
         .sort((a, b) => {
-          const aTime = a.periodStart ? a.periodStart.getTime() : 0;
-          const bTime = b.periodStart ? b.periodStart.getTime() : 0;
+          const aTime = a.missionStart ? a.missionStart.getTime() : 0;
+          const bTime = b.missionStart ? b.missionStart.getTime() : 0;
           return bTime - aTime;
         })
         .forEach(item => {
-          if (!seen.has(item.periodKey)) {
-            seen.add(item.periodKey);
-            uniquePeriods.push({
-              key: item.periodKey,
-              label: item.periodLabel
+          if (!seen.has(item.missionKey)) {
+            seen.add(item.missionKey);
+            uniqueMissions.push({
+              key: item.missionKey,
+              label: item.missionLabel
             });
           }
         });
 
-      select.innerHTML = '<option value="">All Periods</option>';
+      select.innerHTML = '<option value="">All Missions</option>';
 
-      for (const period of uniquePeriods) {
+      for (const mission of uniqueMissions) {
         const option = document.createElement("option");
-        option.value = period.key;
-        option.textContent = period.label;
+        option.value = mission.key;
+        option.textContent = mission.label;
         select.appendChild(option);
       }
 
@@ -619,11 +671,11 @@
       }
     }
 
-    function getPeriodFilteredRows() {
-      const selectedPeriod = document.getElementById("periodFilter").value;
+    function getMissionFilteredRows() {
+      const selectedMission = document.getElementById("missionFilter").value;
 
       return enrichedRows.filter(item => {
-        return !selectedPeriod || item.periodKey === selectedPeriod;
+        return !selectedMission || item.missionKey === selectedMission;
       });
     }
 
@@ -631,14 +683,14 @@
       const select = document.getElementById("unitFilter");
       const currentValue = select.value;
       const unitIndex = getUnitColumnIndex();
-      const periodFiltered = getPeriodFilteredRows();
+      const missionFiltered = getMissionFilteredRows();
 
       select.innerHTML = '<option value="">All Units</option>';
 
       if (unitIndex === -1) return;
 
       const units = [...new Set(
-        periodFiltered
+        missionFiltered
           .map(item => (item.row[unitIndex] || "").trim())
           .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b));
@@ -656,18 +708,18 @@
     }
 
     function getFilteredRows() {
-      const selectedPeriod = document.getElementById("periodFilter").value;
+      const selectedMission = document.getElementById("missionFilter").value;
       const selectedUnit = document.getElementById("unitFilter").value;
       const unitIndex = getUnitColumnIndex();
 
       return enrichedRows.filter(item => {
-        const matchesPeriod = !selectedPeriod || item.periodKey === selectedPeriod;
+        const matchesMission = !selectedMission || item.missionKey === selectedMission;
         const matchesUnit =
           !selectedUnit ||
           unitIndex === -1 ||
           ((item.row[unitIndex] || "").trim() === selectedUnit);
 
-        return matchesPeriod && matchesUnit;
+        return matchesMission && matchesUnit;
       });
     }
 
@@ -700,13 +752,13 @@
       document.getElementById("totalResponses").textContent = enrichedRows.length;
       document.getElementById("visibleResponses").textContent = filteredItems.length;
 
-      const selectedPeriodValue = document.getElementById("periodFilter").value;
-      const selectedPeriodText =
-        selectedPeriodValue
-          ? document.querySelector(`#periodFilter option[value="${selectedPeriodValue}"]`)?.textContent || "Unknown"
-          : "All Periods";
+      const selectedMissionValue = document.getElementById("missionFilter").value;
+      const selectedMissionText =
+        selectedMissionValue
+          ? document.querySelector(`#missionFilter option[value="${selectedMissionValue}"]`)?.textContent || "Unknown"
+          : "All Missions";
 
-      document.getElementById("selectedPeriod").textContent = selectedPeriodText;
+      document.getElementById("selectedMission").textContent = selectedMissionText;
     }
 
     function polarToCartesian(cx, cy, r, angleDeg) {
@@ -821,7 +873,7 @@
       renderGauges(filteredItems);
     }
 
-    function handlePeriodChange() {
+    function handleMissionChange() {
       populateUnitFilter();
       applyFilters();
     }
@@ -839,7 +891,7 @@
         headers = rows[0] || [];
 
         buildEnrichedRows();
-        populatePeriodFilter();
+        populateMissionFilter();
         populateUnitFilter();
         applyFilters();
       } catch (error) {
@@ -850,7 +902,7 @@
       }
     }
 
-    document.getElementById("periodFilter").addEventListener("change", handlePeriodChange);
+    document.getElementById("missionFilter").addEventListener("change", handleMissionChange);
     document.getElementById("unitFilter").addEventListener("change", applyFilters);
     document.getElementById("refreshButton").addEventListener("click", loadSheet);
 
