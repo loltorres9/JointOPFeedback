@@ -68,7 +68,7 @@
     select {
       background: #0b1220;
       color: var(--text);
-      min-width: 240px;
+      min-width: 220px;
     }
 
     button {
@@ -263,9 +263,14 @@
       <p class="muted">Live results from the Google Form</p>
 
       <div class="toolbar">
+        <select id="periodFilter">
+          <option value="">All Periods</option>
+        </select>
+
         <select id="unitFilter">
           <option value="">All Units</option>
         </select>
+
         <button id="refreshButton" type="button">Refresh</button>
       </div>
 
@@ -278,12 +283,16 @@
           <div class="stat-title">Visible responses</div>
           <div class="stat-value" id="visibleResponses">0</div>
         </div>
+        <div class="stat-box">
+          <div class="stat-title">Selected period</div>
+          <div class="stat-value" id="selectedPeriod" style="font-size:18px;">All Periods</div>
+        </div>
       </div>
     </div>
 
     <div class="card">
       <h2>Average Scores</h2>
-      <p class="muted">These gauges show the average score of the currently selected unit.</p>
+      <p class="muted">These gauges show the average score of the currently selected unit and period.</p>
       <div id="gauges" class="gauge-grid"></div>
       <div id="gaugeEmpty" class="empty" style="display:none;">
         No numeric data found for the selected responses.
@@ -309,8 +318,13 @@
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQf8L3Zc_XWlfcoyTnJfFlaiGPjcNyUDXODP12qHF1yQk3_DZJVBCJbWXNRzsgw53TRCn1BCo_VBm4U/pub?output=csv";
 
     const unitColumnName = "Your Unit?";
+    const timestampColumnName = "Timestamp";
+    const gaugeMin = 1;
+    const gaugeMax = 10;
+
     let rows = [];
     let headers = [];
+    let enrichedRows = [];
 
     const gaugeDefinitions = [
       {
@@ -401,6 +415,17 @@
       return headers.findIndex(h => normalizeText(h) === normalizeText(unitColumnName));
     }
 
+    function getTimestampColumnIndex() {
+      return headers.findIndex(h => normalizeText(h) === normalizeText(timestampColumnName));
+    }
+
+    function getVisibleColumnIndexes() {
+      const timestampIndex = getTimestampColumnIndex();
+      return headers
+        .map((_, index) => index)
+        .filter(index => index !== timestampIndex);
+    }
+
     function findQuestionColumnIndex(matchers) {
       return headers.findIndex(header => {
         const normalizedHeader = normalizeText(header);
@@ -408,18 +433,213 @@
       });
     }
 
+    function parseNumericValue(value) {
+      if (value === null || value === undefined) return null;
+
+      const cleaned = String(value).trim().replace(",", ".");
+      if (cleaned === "") return null;
+
+      const num = Number(cleaned);
+      if (Number.isNaN(num)) return null;
+
+      return num;
+    }
+
+    function parseResponseDate(value) {
+      if (!value) return null;
+
+      const raw = String(value).trim();
+      if (!raw) return null;
+
+      const nativeParsed = new Date(raw);
+      if (!Number.isNaN(nativeParsed.getTime())) {
+        return nativeParsed;
+      }
+
+      const dotMatch = raw.match(
+        /^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+      );
+      if (dotMatch) {
+        const [, dd, mm, yyyy, hh = "0", mi = "0", ss = "0"] = dotMatch;
+        const year = yyyy.length === 2 ? Number(`20${yyyy}`) : Number(yyyy);
+        return new Date(
+          year,
+          Number(mm) - 1,
+          Number(dd),
+          Number(hh),
+          Number(mi),
+          Number(ss)
+        );
+      }
+
+      const slashMatch = raw.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+      );
+      if (slashMatch) {
+        let [, a, b, yyyy, hh = "0", mi = "0", ss = "0"] = slashMatch;
+        const year = yyyy.length === 2 ? Number(`20${yyyy}`) : Number(yyyy);
+
+        let day;
+        let month;
+
+        if (Number(a) > 12) {
+          day = Number(a);
+          month = Number(b) - 1;
+        } else {
+          month = Number(a) - 1;
+          day = Number(b);
+        }
+
+        return new Date(year, month, day, Number(hh), Number(mi), Number(ss));
+      }
+
+      return null;
+    }
+
+    function lastSaturdayOfMonth(year, monthIndex) {
+      const lastDay = new Date(year, monthIndex + 1, 0);
+      const dayOfWeek = lastDay.getDay();
+      const diffToSaturday = (dayOfWeek - 6 + 7) % 7;
+      return new Date(year, monthIndex, lastDay.getDate() - diffToSaturday);
+    }
+
+    function addMonths(year, monthIndex, amount) {
+      const d = new Date(year, monthIndex + amount, 1);
+      return { year: d.getFullYear(), monthIndex: d.getMonth() };
+    }
+
+    function periodLabelForMonth(year, monthIndex) {
+      return new Date(year, monthIndex, 1).toLocaleString("en-US", {
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function startOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    }
+
+    function endOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+    }
+
+    function getPeriodForDate(date) {
+      if (!date) return null;
+
+      const candidates = [];
+      const baseYear = date.getFullYear();
+      const baseMonth = date.getMonth();
+
+      for (let offset = -2; offset <= 1; offset++) {
+        const current = addMonths(baseYear, baseMonth, offset);
+        const next = addMonths(current.year, current.monthIndex, 1);
+
+        const start = startOfDay(lastSaturdayOfMonth(current.year, current.monthIndex));
+        const end = endOfDay(lastSaturdayOfMonth(next.year, next.monthIndex));
+
+        candidates.push({
+          key: `${current.year}-${String(current.monthIndex + 1).padStart(2, "0")}`,
+          label: periodLabelForMonth(current.year, current.monthIndex),
+          start,
+          end
+        });
+      }
+
+      candidates.sort((a, b) => a.start - b.start);
+
+      for (const candidate of candidates) {
+        if (date >= candidate.start && date <= candidate.end) {
+          return candidate;
+        }
+      }
+
+      const fallbackPrev = addMonths(baseYear, baseMonth, -1);
+      return {
+        key: `${fallbackPrev.year}-${String(fallbackPrev.monthIndex + 1).padStart(2, "0")}`,
+        label: periodLabelForMonth(fallbackPrev.year, fallbackPrev.monthIndex),
+        start: startOfDay(lastSaturdayOfMonth(fallbackPrev.year, fallbackPrev.monthIndex)),
+        end: endOfDay(lastSaturdayOfMonth(baseYear, baseMonth))
+      };
+    }
+
+    function buildEnrichedRows() {
+      const timestampIndex = getTimestampColumnIndex();
+
+      enrichedRows = rows.slice(1).map((row) => {
+        const timestampValue = timestampIndex >= 0 ? row[timestampIndex] : "";
+        const parsedDate = parseResponseDate(timestampValue);
+        const period = getPeriodForDate(parsedDate);
+
+        return {
+          row,
+          date: parsedDate,
+          periodKey: period ? period.key : "",
+          periodLabel: period ? period.label : "Unknown",
+          periodStart: period ? period.start : null,
+          periodEnd: period ? period.end : null
+        };
+      });
+    }
+
+    function populatePeriodFilter() {
+      const select = document.getElementById("periodFilter");
+      const currentValue = select.value;
+
+      const uniquePeriods = [];
+      const seen = new Set();
+
+      enrichedRows
+        .filter(item => item.periodKey)
+        .sort((a, b) => {
+          const aTime = a.periodStart ? a.periodStart.getTime() : 0;
+          const bTime = b.periodStart ? b.periodStart.getTime() : 0;
+          return bTime - aTime;
+        })
+        .forEach(item => {
+          if (!seen.has(item.periodKey)) {
+            seen.add(item.periodKey);
+            uniquePeriods.push({
+              key: item.periodKey,
+              label: item.periodLabel
+            });
+          }
+        });
+
+      select.innerHTML = '<option value="">All Periods</option>';
+
+      for (const period of uniquePeriods) {
+        const option = document.createElement("option");
+        option.value = period.key;
+        option.textContent = period.label;
+        select.appendChild(option);
+      }
+
+      if ([...select.options].some(option => option.value === currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    function getPeriodFilteredRows() {
+      const selectedPeriod = document.getElementById("periodFilter").value;
+
+      return enrichedRows.filter(item => {
+        return !selectedPeriod || item.periodKey === selectedPeriod;
+      });
+    }
+
     function populateUnitFilter() {
       const select = document.getElementById("unitFilter");
       const currentValue = select.value;
       const unitIndex = getUnitColumnIndex();
+      const periodFiltered = getPeriodFilteredRows();
 
       select.innerHTML = '<option value="">All Units</option>';
 
       if (unitIndex === -1) return;
 
       const units = [...new Set(
-        rows.slice(1)
-          .map(r => (r[unitIndex] || "").trim())
+        periodFiltered
+          .map(item => (item.row[unitIndex] || "").trim())
           .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b));
 
@@ -435,58 +655,58 @@
       }
     }
 
-    function parseNumericValue(value) {
-      if (value === null || value === undefined) return null;
-
-      const cleaned = String(value).trim().replace(",", ".");
-      if (cleaned === "") return null;
-
-      const num = Number(cleaned);
-      if (Number.isNaN(num)) return null;
-
-      return num;
-    }
-
     function getFilteredRows() {
+      const selectedPeriod = document.getElementById("periodFilter").value;
       const selectedUnit = document.getElementById("unitFilter").value;
       const unitIndex = getUnitColumnIndex();
 
-      return rows.slice(1).filter(row => {
-        return (
+      return enrichedRows.filter(item => {
+        const matchesPeriod = !selectedPeriod || item.periodKey === selectedPeriod;
+        const matchesUnit =
           !selectedUnit ||
           unitIndex === -1 ||
-          ((row[unitIndex] || "").trim() === selectedUnit)
-        );
+          ((item.row[unitIndex] || "").trim() === selectedUnit);
+
+        return matchesPeriod && matchesUnit;
       });
     }
 
-    function renderTable(filteredRows) {
+    function renderTable(filteredItems) {
       const header = document.getElementById("header");
       const body = document.getElementById("body");
+      const visibleIndexes = getVisibleColumnIndexes();
 
       header.innerHTML = "";
       body.innerHTML = "";
 
-      for (const h of headers) {
+      for (const index of visibleIndexes) {
         const th = document.createElement("th");
-        th.textContent = h;
+        th.textContent = headers[index];
         header.appendChild(th);
       }
 
-      for (const row of filteredRows) {
+      for (const item of filteredItems) {
         const tr = document.createElement("tr");
 
-        for (let i = 0; i < headers.length; i++) {
+        for (const index of visibleIndexes) {
           const td = document.createElement("td");
-          td.textContent = row[i] ?? "";
+          td.textContent = item.row[index] ?? "";
           tr.appendChild(td);
         }
 
         body.appendChild(tr);
       }
 
-      document.getElementById("totalResponses").textContent = Math.max(rows.length - 1, 0);
-      document.getElementById("visibleResponses").textContent = filteredRows.length;
+      document.getElementById("totalResponses").textContent = enrichedRows.length;
+      document.getElementById("visibleResponses").textContent = filteredItems.length;
+
+      const selectedPeriodValue = document.getElementById("periodFilter").value;
+      const selectedPeriodText =
+        selectedPeriodValue
+          ? document.querySelector(`#periodFilter option[value="${selectedPeriodValue}"]`)?.textContent || "Unknown"
+          : "All Periods";
+
+      document.getElementById("selectedPeriod").textContent = selectedPeriodText;
     }
 
     function polarToCartesian(cx, cy, r, angleDeg) {
@@ -504,7 +724,7 @@
       return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
     }
 
-    function getGaugeColor(avg, min = 1, max = 5) {
+    function getGaugeColor(avg, min = gaugeMin, max = gaugeMax) {
       const normalized = (avg - min) / (max - min);
       if (normalized < 0.4) return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
       if (normalized < 0.7) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
@@ -512,8 +732,8 @@
     }
 
     function buildGauge(title, avg, count) {
-      const min = 1;
-      const max = 5;
+      const min = gaugeMin;
+      const max = gaugeMax;
       const safeAvg = clamp(avg, min, max);
       const color = getGaugeColor(safeAvg, min, max);
 
@@ -554,7 +774,7 @@
       return card;
     }
 
-    function renderGauges(filteredRows) {
+    function renderGauges(filteredItems) {
       const gaugesEl = document.getElementById("gauges");
       const emptyEl = document.getElementById("gaugeEmpty");
 
@@ -566,10 +786,10 @@
         const columnIndex = findQuestionColumnIndex(gauge.matchers);
         if (columnIndex === -1) continue;
 
-        const numericValues = filteredRows
-          .map(row => parseNumericValue(row[columnIndex]))
+        const numericValues = filteredItems
+          .map(item => parseNumericValue(item.row[columnIndex]))
           .filter(v => v !== null)
-          .map(v => clamp(v, 1, 5));
+          .map(v => clamp(v, gaugeMin, gaugeMax));
 
         if (!numericValues.length) continue;
 
@@ -578,7 +798,7 @@
 
         results.push({
           title: gauge.label,
-          avg: clamp(avg, 1, 5),
+          avg: clamp(avg, gaugeMin, gaugeMax),
           count: numericValues.length
         });
       }
@@ -596,9 +816,14 @@
     }
 
     function applyFilters() {
-      const filteredRows = getFilteredRows();
-      renderTable(filteredRows);
-      renderGauges(filteredRows);
+      const filteredItems = getFilteredRows();
+      renderTable(filteredItems);
+      renderGauges(filteredItems);
+    }
+
+    function handlePeriodChange() {
+      populateUnitFilter();
+      applyFilters();
     }
 
     async function loadSheet() {
@@ -613,6 +838,8 @@
         rows = parseCSV(text);
         headers = rows[0] || [];
 
+        buildEnrichedRows();
+        populatePeriodFilter();
         populateUnitFilter();
         applyFilters();
       } catch (error) {
@@ -623,6 +850,7 @@
       }
     }
 
+    document.getElementById("periodFilter").addEventListener("change", handlePeriodChange);
     document.getElementById("unitFilter").addEventListener("change", applyFilters);
     document.getElementById("refreshButton").addEventListener("click", loadSheet);
 
