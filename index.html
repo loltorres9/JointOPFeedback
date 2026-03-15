@@ -13,6 +13,9 @@
       --muted: #94a3b8;
       --border: #475569;
       --accent: #60a5fa;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --ok: #22c55e;
     }
 
     * { box-sizing: border-box; }
@@ -26,7 +29,7 @@
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 1500px;
       margin: auto;
     }
 
@@ -86,30 +89,83 @@
       font-weight: bold;
     }
 
-    .avg-grid {
+    .gauge-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
       margin-top: 16px;
     }
 
-    .avg-card {
+    .gauge-card {
       background: var(--panel-2);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 16px;
     }
 
-    .avg-question {
+    .gauge-title {
       font-size: 14px;
       color: var(--muted);
+      min-height: 38px;
       margin-bottom: 8px;
+      line-height: 1.35;
     }
 
-    .avg-value {
-      font-size: 28px;
+    .gauge-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      max-width: 260px;
+      height: auto;
+      overflow: visible;
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: #1b2438;
+      stroke-width: 16;
+      stroke-linecap: round;
+    }
+
+    .gauge-value {
+      fill: none;
+      stroke-width: 16;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.4s ease, stroke 0.4s ease;
+    }
+
+    .gauge-needle {
+      stroke: #ffffff;
+      stroke-width: 3;
+      stroke-linecap: round;
+      transform-origin: 100px 100px;
+      transition: transform 0.4s ease;
+    }
+
+    .gauge-center {
+      fill: #ffffff;
+    }
+
+    .gauge-score {
+      font-size: 24px;
       font-weight: bold;
-      color: #ffffff;
+      fill: #ffffff;
+      text-anchor: middle;
+    }
+
+    .gauge-sub {
+      font-size: 12px;
+      fill: var(--muted);
+      text-anchor: middle;
+    }
+
+    .gauge-scale {
+      font-size: 12px;
+      fill: var(--muted);
     }
 
     .table-wrap {
@@ -145,6 +201,12 @@
       color: var(--muted);
       padding: 12px 0 0;
     }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 18px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -174,10 +236,10 @@
 
     <div class="card">
       <h2>Average Scores</h2>
-      <p class="muted">Averages are calculated from the currently visible results.</p>
-      <div id="averages" class="avg-grid"></div>
-      <div id="averageEmpty" class="empty" style="display:none;">
-        No numeric questions found in the filtered results.
+      <p class="muted">These gauges show the average score of the currently selected unit.</p>
+      <div id="gauges" class="gauge-grid"></div>
+      <div id="gaugeEmpty" class="empty" style="display:none;">
+        No numeric data found for the selected responses.
       </div>
     </div>
 
@@ -199,9 +261,43 @@
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQf8L3Zc_XWlfcoyTnJfFlaiGPjcNyUDXODP12qHF1yQk3_DZJVBCJbWXNRzsgw53TRCn1BCo_VBm4U/pub?output=csv";
 
+    const unitColumnName = "Your Unit?";
+
     let rows = [];
     let headers = [];
-    const unitColumnName = "Your Unit?";
+
+    const gaugeDefinitions = [
+      {
+        label: "Mission Satisfaction",
+        matchers: [
+          "how satisfied were you with the mission",
+          "satisfied were you with the mission"
+        ]
+      },
+      {
+        label: "Performance",
+        matchers: [
+          "how was your performance throughout the mission",
+          "performance throughout the mission"
+        ]
+      },
+      {
+        label: "Mission Difficulty",
+        matchers: [
+          "how would you rate the mission's difficulty level",
+          "how would you rate the missions difficulty level",
+          "mission difficulty level"
+        ]
+      },
+      {
+        label: "C2 Satisfaction",
+        matchers: [
+          "how satisfied are you with c2 in the mission",
+          "satisfied are you with c2 in the mission",
+          "c2 in the mission"
+        ]
+      }
+    ];
 
     function parseCSV(text) {
       const result = [];
@@ -242,8 +338,24 @@
       return result.filter(r => r.some(cell => String(cell).trim() !== ""));
     }
 
+    function normalizeText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/[’']/g, "")
+        .replace(/[^a-z0-9? ]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
     function getUnitColumnIndex() {
-      return headers.findIndex(h => h.trim().toLowerCase() === unitColumnName.toLowerCase());
+      return headers.findIndex(h => normalizeText(h) === normalizeText(unitColumnName));
+    }
+
+    function findQuestionColumnIndex(matchers) {
+      return headers.findIndex(header => {
+        const normalizedHeader = normalizeText(header);
+        return matchers.some(m => normalizedHeader.includes(normalizeText(m)));
+      });
     }
 
     function populateUnitFilter() {
@@ -257,7 +369,7 @@
       const units = [...new Set(
         rows.slice(1)
           .map(r => (r[unitIndex] || "").trim())
-          .filter(v => v)
+          .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b));
 
       for (const unit of units) {
@@ -317,57 +429,115 @@
       document.getElementById("visibleResponses").textContent = filteredRows.length;
     }
 
-    function renderAverages(filteredRows) {
-      const averagesEl = document.getElementById("averages");
-      const emptyEl = document.getElementById("averageEmpty");
+    function getGaugeColor(avg, min = 1, max = 5) {
+      const normalized = (avg - min) / (max - min);
 
-      averagesEl.innerHTML = "";
+      if (normalized < 0.4) return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+      if (normalized < 0.7) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
+      return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
+    }
 
-      const averageResults = [];
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, endAngle);
+      const end = polarToCartesian(cx, cy, r, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
 
-      for (let col = 0; col < headers.length; col++) {
-        if (headers[col].trim().toLowerCase() === unitColumnName.toLowerCase()) continue;
+      return [
+        "M", start.x, start.y,
+        "A", r, r, 0, largeArcFlag, 0, end.x, end.y
+      ].join(" ");
+    }
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const angleRad = (angleDeg - 90) * Math.PI / 180.0;
+      return {
+        x: cx + (r * Math.cos(angleRad)),
+        y: cy + (r * Math.sin(angleRad))
+      };
+    }
+
+    function getNeedleRotation(avg, min = 1, max = 5) {
+      const ratio = Math.max(0, Math.min(1, (avg - min) / (max - min)));
+      return -90 + (ratio * 180);
+    }
+
+    function buildGauge(title, avg, count) {
+      const color = getGaugeColor(avg);
+      const rotation = getNeedleRotation(avg);
+      const min = 1;
+      const max = 5;
+
+      const card = document.createElement("div");
+      card.className = "gauge-card";
+      card.innerHTML = `
+        <div class="gauge-title">${title}</div>
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 200 130" aria-label="${title} average gauge">
+            <path class="gauge-bg" d="${describeArc(100, 100, 65, 180, 360)}"></path>
+            <path class="gauge-value" d="${describeArc(100, 100, 65, 180, 360)}" style="stroke:${color};"></path>
+
+            <g style="transform: rotate(${rotation}deg); transform-origin: 100px 100px;">
+              <line class="gauge-needle" x1="100" y1="100" x2="100" y2="38"></line>
+            </g>
+
+            <circle class="gauge-center" cx="100" cy="100" r="5"></circle>
+
+            <text class="gauge-score" x="100" y="88">${avg.toFixed(2)}</text>
+            <text class="gauge-sub" x="100" y="106">based on ${count} answer(s)</text>
+
+            <text class="gauge-scale" x="28" y="103">${min}</text>
+            <text class="gauge-scale" x="170" y="103">${max}</text>
+          </svg>
+        </div>
+      `;
+      return card;
+    }
+
+    function renderGauges(filteredRows) {
+      const gaugesEl = document.getElementById("gauges");
+      const emptyEl = document.getElementById("gaugeEmpty");
+
+      gaugesEl.innerHTML = "";
+
+      const results = [];
+
+      for (const gauge of gaugeDefinitions) {
+        const columnIndex = findQuestionColumnIndex(gauge.matchers);
+        if (columnIndex === -1) continue;
 
         const numericValues = filteredRows
-          .map(row => row[col])
+          .map(row => row[columnIndex])
           .filter(isNumericValue)
           .map(v => Number(String(v).trim().replace(",", ".")));
 
-        if (numericValues.length > 0) {
-          const sum = numericValues.reduce((a, b) => a + b, 0);
-          const avg = sum / numericValues.length;
+        if (!numericValues.length) continue;
 
-          averageResults.push({
-            question: headers[col],
-            avg: avg,
-            count: numericValues.length
-          });
-        }
+        const sum = numericValues.reduce((a, b) => a + b, 0);
+        const avg = sum / numericValues.length;
+
+        results.push({
+          title: gauge.label,
+          avg,
+          count: numericValues.length
+        });
       }
 
-      if (averageResults.length === 0) {
+      if (!results.length) {
         emptyEl.style.display = "block";
         return;
       }
 
       emptyEl.style.display = "none";
 
-      for (const item of averageResults) {
-        const card = document.createElement("div");
-        card.className = "avg-card";
-        card.innerHTML = `
-          <div class="avg-question">${item.question}</div>
-          <div class="avg-value">${item.avg.toFixed(2)}</div>
-          <div class="muted">Based on ${item.count} answer(s)</div>
-        `;
-        averagesEl.appendChild(card);
+      for (const item of results) {
+        gaugesEl.appendChild(buildGauge(item.title, item.avg, item.count));
       }
     }
 
     function applyFilters() {
       const filteredRows = getFilteredRows();
       renderTable(filteredRows);
-      renderAverages(filteredRows);
+      renderGauges(filteredRows);
     }
 
     async function loadSheet() {
