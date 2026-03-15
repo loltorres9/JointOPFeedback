@@ -1,582 +1,215 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TFP Form Alternative</title>
-  <style>
-    :root {
-      --bg: #0b1220;
-      --panel: #121a2b;
-      --panel-2: #19233a;
-      --text: #e8eefc;
-      --muted: #9fb0d1;
-      --accent: #7aa2ff;
-      --border: #27324d;
-      --ok: #7ee787;
-      --warn: #ffb86b;
-      --danger: #ff7b72;
-      --radius: 18px;
-      --shadow: 0 12px 30px rgba(0,0,0,.28);
-    }
+<meta charset="UTF-8">
+<title>Joint Operations Feedback Viewer</title>
 
-    * { box-sizing: border-box; }
+<style>
 
-    body {
-      margin: 0;
-      font-family: Inter, Segoe UI, Arial, sans-serif;
-      color: var(--text);
-      background: linear-gradient(180deg, #09111f 0%, #0b1220 100%);
-    }
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#0f172a;
+color:#e2e8f0;
+margin:0;
+padding:40px;
+}
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 28px 16px 60px;
-    }
+h1{
+margin-top:0;
+}
 
-    .hero {
-      display: grid;
-      grid-template-columns: 1.3fr 0.9fr;
-      gap: 18px;
-      margin-bottom: 20px;
-    }
+.container{
+max-width:1200px;
+margin:auto;
+}
 
-    .card {
-      background: rgba(18, 26, 43, 0.94);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
+.card{
+background:#1e293b;
+padding:25px;
+border-radius:10px;
+margin-bottom:20px;
+}
 
-    .hero-main {
-      padding: 28px;
-    }
+input{
+padding:10px;
+width:300px;
+border-radius:6px;
+border:none;
+margin-bottom:20px;
+}
 
-    h1 {
-      margin: 0 0 8px;
-      font-size: clamp(28px, 4vw, 42px);
-      line-height: 1.08;
-      letter-spacing: -0.02em;
-    }
+table{
+width:100%;
+border-collapse:collapse;
+}
 
-    .subtitle {
-      color: var(--muted);
-      line-height: 1.6;
-      margin: 0;
-    }
+th{
+background:#334155;
+text-align:left;
+padding:12px;
+}
 
-    .stats {
-      padding: 18px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+td{
+padding:10px;
+border-bottom:1px solid #475569;
+}
 
-    .stat {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-    }
+tr:hover{
+background:#334155;
+}
 
-    .stat-label {
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 0.95fr 1.05fr;
-      gap: 18px;
-    }
-
-    .panel {
-      padding: 22px;
-    }
-
-    h2 {
-      margin: 0 0 16px;
-      font-size: 22px;
-    }
-
-    .field {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .02em;
-    }
-
-    input, select, textarea, button {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: #0c1527;
-      color: var(--text);
-      padding: 12px 14px;
-      font: inherit;
-    }
-
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(122,162,255,.14);
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    button {
-      cursor: pointer;
-      font-weight: 700;
-      border: none;
-      background: linear-gradient(180deg, #7aa2ff 0%, #547ce0 100%);
-      color: white;
-    }
-
-    button.secondary {
-      background: #18243e;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .status {
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      display: none;
-      border: 1px solid var(--border);
-      background: #11192c;
-    }
-
-    .status.show { display: block; }
-    .status.ok { color: var(--ok); border-color: rgba(126,231,135,.25); }
-    .status.error { color: var(--danger); border-color: rgba(255,123,114,.25); }
-    .status.warn { color: var(--warn); border-color: rgba(255,184,107,.25); }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-    }
-
-    .toolbar input, .toolbar select {
-      flex: 1 1 200px;
-    }
-
-    .entries {
-      display: grid;
-      gap: 12px;
-      max-height: 760px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .entry {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .entry-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: start;
-      margin-bottom: 10px;
-    }
-
-    .entry-title {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      border: 1px solid rgba(122,162,255,.28);
-      background: rgba(122,162,255,.11);
-      color: #c9d7ff;
-      white-space: nowrap;
-    }
-
-    .meta {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .message {
-      white-space: pre-wrap;
-      line-height: 1.55;
-    }
-
-    .footer-note {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .empty {
-      color: var(--muted);
-      padding: 18px;
-      text-align: center;
-      border: 1px dashed var(--border);
-      border-radius: 14px;
-      background: rgba(25,35,58,.35);
-    }
-
-    code {
-      background: #0d1526;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 2px 6px;
-      color: #dce7ff;
-    }
-
-    @media (max-width: 920px) {
-      .hero, .layout { grid-template-columns: 1fr; }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <section class="hero">
-      <div class="card hero-main">
-        <h1>Form Alternative statt Google Forms</h1>
-        <p class="subtitle">
-          Diese Version läuft als statische Website auf GitHub Pages, speichert die Daten aber in Supabase.
-          Dadurch ist das Frontend simpel wie dein Mod-Downloader, aber das Speichern deutlich robuster.
-        </p>
-      </div>
-      <div class="card stats">
-        <div class="stat">
-          <div class="stat-label">Gesamte Einträge</div>
-          <div class="stat-value" id="totalEntries">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Gefiltert sichtbar</div>
-          <div class="stat-value" id="visibleEntries">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Letztes Laden</div>
-          <div class="stat-value" id="lastLoaded" style="font-size:16px">–</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Backend</div>
-          <div class="stat-value" style="font-size:18px">Supabase</div>
-        </div>
-      </div>
-    </section>
 
-    <section class="layout">
-      <div class="card panel">
-        <h2>Neuen Eintrag senden</h2>
+<div class="container">
 
-        <form id="entryForm">
-          <div class="field">
-            <label for="name">Name</label>
-            <input id="name" name="name" type="text" placeholder="z. B. Torres" required />
-          </div>
+<div class="card">
+<h1>Joint Operations Feedback</h1>
+<p>Live results from the Google Form</p>
 
-          <div class="field">
-            <label for="email">E-Mail</label>
-            <input id="email" name="email" type="email" placeholder="name@example.com" />
-          </div>
+<input type="text" id="search" placeholder="Search..." />
 
-          <div class="field">
-            <label for="category">Kategorie</label>
-            <select id="category" name="category" required>
-              <option value="">Bitte wählen</option>
-              <option value="General">General</option>
-              <option value="Event">Event</option>
-              <option value="Support">Support</option>
-              <option value="Application">Application</option>
-            </select>
-          </div>
+</div>
 
-          <div class="field">
-            <label for="message">Nachricht</label>
-            <textarea id="message" name="message" placeholder="Dein Text hier..." required></textarea>
-          </div>
+<div class="card">
 
-          <div class="actions">
-            <button type="submit" id="submitBtn">Absenden</button>
-            <button type="button" class="secondary" id="resetBtn">Zurücksetzen</button>
-          </div>
-        </form>
+<table id="table">
 
-        <div id="formStatus" class="status"></div>
+<thead>
+<tr id="header"></tr>
+</thead>
 
-        <div class="footer-note">
-          In der Datei musst du nur <code>SUPABASE_URL</code> und <code>SUPABASE_ANON_KEY</code> eintragen.
-          Den Rest kannst du direkt auf GitHub Pages hosten.
-        </div>
-      </div>
+<tbody id="body"></tbody>
 
-      <div class="card panel">
-        <h2>Gespeicherte Einträge</h2>
+</table>
 
-        <div class="toolbar">
-          <input id="searchInput" type="text" placeholder="Suche nach Name, Mail oder Nachricht..." />
-          <select id="categoryFilter">
-            <option value="">Alle Kategorien</option>
-            <option value="General">General</option>
-            <option value="Event">Event</option>
-            <option value="Support">Support</option>
-            <option value="Application">Application</option>
-          </select>
-          <button type="button" id="reloadBtn" style="max-width: 150px;">Neu laden</button>
-        </div>
+</div>
 
-        <div id="entries" class="entries"></div>
-      </div>
-    </section>
-  </div>
+</div>
 
-  <script>
-    /*
-      ==========================================
-      SETUP
-      ==========================================
-      1. Supabase Projekt anlegen
-      2. Tabelle mit dem SQL unten erstellen
-      3. URL + anon key hier einsetzen
-      4. Datei als index.html auf GitHub Pages hochladen
+<script>
 
-      SQL für Supabase:
+const SHEET_CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQf8L3Zc_XWlfcoyTnJfFlaiGPjcNyUDXODP12qHF1yQk3_DZJVBCJbWXNRzsgw53TRCn1BCo_VBm4U/pub?output=csv";
 
-      create table public.form_entries (
-        id bigint generated always as identity primary key,
-        created_at timestamptz not null default now(),
-        name text not null,
-        email text,
-        category text not null,
-        message text not null
-      );
+let rows = [];
 
-      alter table public.form_entries enable row level security;
+function parseCSV(text){
 
-      create policy "allow public insert"
-      on public.form_entries
-      for insert
-      to anon
-      with check (true);
+let lines = text.split("\n");
+let result = [];
 
-      create policy "allow public read"
-      on public.form_entries
-      for select
-      to anon
-      using (true);
+for(let line of lines){
 
-      Später kann man das natürlich härter absichern, z. B. mit Login, Admin-Ansicht oder Schreibschutz.
-    */
+let row = [];
+let current = "";
+let insideQuotes = false;
 
-    const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
-    const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
-    const TABLE_NAME = "form_entries";
+for(let char of line){
 
-    const form = document.getElementById("entryForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const reloadBtn = document.getElementById("reloadBtn");
-    const formStatus = document.getElementById("formStatus");
-    const entriesEl = document.getElementById("entries");
-    const searchInput = document.getElementById("searchInput");
-    const categoryFilter = document.getElementById("categoryFilter");
-    const totalEntries = document.getElementById("totalEntries");
-    const visibleEntries = document.getElementById("visibleEntries");
-    const lastLoaded = document.getElementById("lastLoaded");
+if(char === '"'){
+insideQuotes = !insideQuotes;
+}
 
-    let allEntries = [];
+else if(char === "," && !insideQuotes){
+row.push(current);
+current = "";
+}
 
-    function showStatus(element, message, type = "ok") {
-      element.className = `status show ${type}`;
-      element.textContent = message;
-    }
+else{
+current += char;
+}
 
-    function hideStatus(element) {
-      element.className = "status";
-      element.textContent = "";
-    }
+}
 
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
+row.push(current);
 
-    function isConfigured() {
-      return !SUPABASE_URL.includes("PASTE_YOUR") && !SUPABASE_ANON_KEY.includes("PASTE_YOUR");
-    }
+result.push(row);
 
-    async function supabaseRequest(path, options = {}) {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          ...(options.headers || {})
-        }
-      });
+}
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `HTTP ${response.status}`);
-      }
+return result;
 
-      if (response.status === 204) return null;
-      return response.json();
-    }
+}
 
-    async function submitEntry(event) {
-      event.preventDefault();
-      hideStatus(formStatus);
+function renderTable(data){
 
-      if (!isConfigured()) {
-        showStatus(formStatus, "Bitte zuerst SUPABASE_URL und SUPABASE_ANON_KEY in der Datei eintragen.", "warn");
-        return;
-      }
+const header = document.getElementById("header");
+const body = document.getElementById("body");
 
-      const payload = {
-        name: form.name.value.trim(),
-        email: form.email.value.trim() || null,
-        category: form.category.value,
-        message: form.message.value.trim()
-      };
+header.innerHTML = "";
+body.innerHTML = "";
 
-      if (!payload.name || !payload.category || !payload.message) {
-        showStatus(formStatus, "Bitte alle Pflichtfelder ausfüllen.", "warn");
-        return;
-      }
+let headers = data[0];
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Speichert...";
+for(let h of headers){
+let th = document.createElement("th");
+th.textContent = h;
+header.appendChild(th);
+}
 
-      try {
-        await supabaseRequest(TABLE_NAME, {
-          method: "POST",
-          headers: {
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify(payload)
-        });
+for(let i=1;i<data.length;i++){
 
-        showStatus(formStatus, "Eintrag erfolgreich gespeichert.", "ok");
-        form.reset();
-        await loadEntries();
-      } catch (error) {
-        console.error(error);
-        showStatus(formStatus, "Speichern fehlgeschlagen. Prüfe Supabase URL, anon key und RLS Policies.", "error");
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Absenden";
-      }
-    }
+let tr = document.createElement("tr");
 
-    async function loadEntries() {
-      if (!isConfigured()) {
-        entriesEl.innerHTML = `<div class="empty">Noch nicht konfiguriert. Trage zuerst <code>SUPABASE_URL</code> und <code>SUPABASE_ANON_KEY</code> ein.</div>`;
-        totalEntries.textContent = "0";
-        visibleEntries.textContent = "0";
-        lastLoaded.textContent = "–";
-        return;
-      }
+for(let cell of data[i]){
 
-      try {
-        const rows = await supabaseRequest(`${TABLE_NAME}?select=*&order=created_at.desc`);
-        allEntries = Array.isArray(rows) ? rows : [];
-        totalEntries.textContent = String(allEntries.length);
-        lastLoaded.textContent = new Date().toLocaleString("de-DE");
-        renderEntries();
-      } catch (error) {
-        console.error(error);
-        entriesEl.innerHTML = `<div class="empty">Einträge konnten nicht geladen werden. Prüfe Tabelle, Policies und REST-Zugriff.</div>`;
-        totalEntries.textContent = "0";
-        visibleEntries.textContent = "0";
-      }
-    }
+let td = document.createElement("td");
+td.textContent = cell;
+tr.appendChild(td);
 
-    function renderEntries() {
-      const search = searchInput.value.trim().toLowerCase();
-      const filter = categoryFilter.value;
+}
 
-      const filtered = allEntries.filter(entry => {
-        const matchesSearch = !search || [entry.name, entry.email, entry.category, entry.message]
-          .filter(Boolean)
-          .some(value => String(value).toLowerCase().includes(search));
+body.appendChild(tr);
 
-        const matchesCategory = !filter || entry.category === filter;
-        return matchesSearch && matchesCategory;
-      });
+}
 
-      visibleEntries.textContent = String(filtered.length);
+}
 
-      if (!filtered.length) {
-        entriesEl.innerHTML = `<div class="empty">Keine passenden Einträge gefunden.</div>`;
-        return;
-      }
+function filterTable(){
 
-      entriesEl.innerHTML = filtered.map(entry => `
-        <article class="entry">
-          <div class="entry-head">
-            <div>
-              <div class="entry-title">${escapeHtml(entry.name || "Unbekannt")}</div>
-              <div class="meta">
-                ${escapeHtml(entry.email || "Keine E-Mail")} · ${new Date(entry.created_at).toLocaleString("de-DE")}
-              </div>
-            </div>
-            <span class="badge">${escapeHtml(entry.category || "General")}</span>
-          </div>
-          <div class="message">${escapeHtml(entry.message || "")}</div>
-        </article>
-      `).join("");
-    }
+let search = document
+.getElementById("search")
+.value
+.toLowerCase();
 
-    form.addEventListener("submit", submitEntry);
-    resetBtn.addEventListener("click", () => {
-      form.reset();
-      hideStatus(formStatus);
-    });
-    reloadBtn.addEventListener("click", loadEntries);
-    searchInput.addEventListener("input", renderEntries);
-    categoryFilter.addEventListener("change", renderEntries);
+let filtered = [rows[0]];
 
-    loadEntries();
-  </script>
+for(let i=1;i<rows.length;i++){
+
+let row = rows[i];
+
+if(row.join(" ").toLowerCase().includes(search)){
+filtered.push(row);
+}
+
+}
+
+renderTable(filtered);
+
+}
+
+async function loadSheet(){
+
+let res = await fetch(SHEET_CSV_URL);
+
+let text = await res.text();
+
+rows = parseCSV(text);
+
+renderTable(rows);
+
+}
+
+document
+.getElementById("search")
+.addEventListener("input",filterTable);
+
+loadSheet();
+
+</script>
+
 </body>
 </html>
