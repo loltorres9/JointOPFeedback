@@ -52,7 +52,7 @@
       margin-top: 16px;
     }
 
-    input, select {
+    select {
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
@@ -155,7 +155,6 @@
       <p class="muted">Live results from the Google Form</p>
 
       <div class="toolbar">
-        <input type="text" id="search" placeholder="Search..." />
         <select id="unitFilter">
           <option value="">All Units</option>
         </select>
@@ -175,9 +174,7 @@
 
     <div class="card">
       <h2>Average Scores</h2>
-      <p class="muted">
-        Averages are calculated from the currently visible results.
-      </p>
+      <p class="muted">Averages are calculated from the currently visible results.</p>
       <div id="averages" class="avg-grid"></div>
       <div id="averageEmpty" class="empty" style="display:none;">
         No numeric questions found in the filtered results.
@@ -204,7 +201,7 @@
 
     let rows = [];
     let headers = [];
-    let unitColumnName = "Your Unit?";
+    const unitColumnName = "Your Unit?";
 
     function parseCSV(text) {
       const result = [];
@@ -279,18 +276,15 @@
     }
 
     function getFilteredRows() {
-      const search = document.getElementById("search").value.toLowerCase().trim();
       const selectedUnit = document.getElementById("unitFilter").value;
       const unitIndex = getUnitColumnIndex();
 
       return rows.slice(1).filter(row => {
-        const matchesSearch = !search || row.join(" ").toLowerCase().includes(search);
-        const matchesUnit =
+        return (
           !selectedUnit ||
           unitIndex === -1 ||
-          ((row[unitIndex] || "").trim() === selectedUnit);
-
-        return matchesSearch && matchesUnit;
+          ((row[unitIndex] || "").trim() === selectedUnit)
+        );
       });
     }
 
@@ -387,7 +381,6 @@
       applyFilters();
     }
 
-    document.getElementById("search").addEventListener("input", applyFilters);
     document.getElementById("unitFilter").addEventListener("change", applyFilters);
 
     loadSheet();
