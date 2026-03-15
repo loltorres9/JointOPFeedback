@@ -100,7 +100,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
-      min-height: 250px;
+      min-height: 270px;
       display: flex;
       flex-direction: column;
     }
@@ -123,8 +123,9 @@
     .gauge-svg {
       width: 100%;
       max-width: 260px;
-      height: 180px;
+      height: 190px;
       display: block;
+      overflow: visible;
     }
 
     .gauge-bg {
@@ -206,6 +207,14 @@
     @media (max-width: 700px) {
       body {
         padding: 18px;
+      }
+
+      .gauge-card {
+        min-height: 250px;
+      }
+
+      .gauge-svg {
+        height: 180px;
       }
     }
   </style>
@@ -439,7 +448,7 @@
     }
 
     function polarToCartesian(cx, cy, r, angleDeg) {
-      const angleRad = (angleDeg - 90) * Math.PI / 180;
+      const angleRad = angleDeg * Math.PI / 180;
       return {
         x: cx + (r * Math.cos(angleRad)),
         y: cy + (r * Math.sin(angleRad))
@@ -447,10 +456,10 @@
     }
 
     function describeArc(cx, cy, r, startAngle, endAngle) {
-      const start = polarToCartesian(cx, cy, r, endAngle);
-      const end = polarToCartesian(cx, cy, r, startAngle);
+      const start = polarToCartesian(cx, cy, r, startAngle);
+      const end = polarToCartesian(cx, cy, r, endAngle);
       const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-      return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+      return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
     }
 
     function getGaugeColor(avg, min = 1, max = 5) {
@@ -467,34 +476,33 @@
       const color = getGaugeColor(safeAvg, min, max);
 
       const cx = 100;
-      const cy = 95;
+      const cy = 115;
       const r = 55;
 
       const bgArc = describeArc(cx, cy, r, 180, 360);
       const valueEndAngle = 180 + (((safeAvg - min) / (max - min)) * 180);
       const valueArc = describeArc(cx, cy, r, 180, valueEndAngle);
 
-      const needleLength = 42;
-      const needleAngle = 180 + (((safeAvg - min) / (max - min)) * 180);
-      const needle = polarToCartesian(cx, cy, needleLength, needleAngle);
+      const needleLength = 40;
+      const needle = polarToCartesian(cx, cy, needleLength, valueEndAngle);
 
-      const leftScale = polarToCartesian(cx, cy, r + 18, 180);
-      const rightScale = polarToCartesian(cx, cy, r + 18, 360);
+      const leftScale = polarToCartesian(cx, cy, r + 16, 180);
+      const rightScale = polarToCartesian(cx, cy, r + 16, 360);
 
       const card = document.createElement("div");
       card.className = "gauge-card";
       card.innerHTML = `
         <div class="gauge-title">${title}</div>
         <div class="gauge-wrap">
-          <svg class="gauge-svg" viewBox="0 0 200 180" aria-label="${title} average gauge">
+          <svg class="gauge-svg" viewBox="0 0 200 190" aria-label="${title} average gauge">
             <path class="gauge-bg" d="${bgArc}"></path>
             <path class="gauge-value" d="${valueArc}" style="stroke:${color};"></path>
 
             <line class="gauge-needle" x1="${cx}" y1="${cy}" x2="${needle.x}" y2="${needle.y}"></line>
             <circle class="gauge-center" cx="${cx}" cy="${cy}" r="4.5"></circle>
 
-            <text class="gauge-score" x="${cx}" y="138">${safeAvg.toFixed(2)}</text>
-            <text class="gauge-sub" x="${cx}" y="156">based on ${count} answer(s)</text>
+            <text class="gauge-score" x="${cx}" y="160">${safeAvg.toFixed(2)}</text>
+            <text class="gauge-sub" x="${cx}" y="178">based on ${count} answer(s)</text>
 
             <text class="gauge-scale" x="${leftScale.x}" y="${leftScale.y + 5}">${min}</text>
             <text class="gauge-scale" x="${rightScale.x}" y="${rightScale.y + 5}">${max}</text>
