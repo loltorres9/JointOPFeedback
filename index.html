@@ -15,6 +15,8 @@
       --danger: #ef4444;
       --warn: #f59e0b;
       --ok: #22c55e;
+      --button: #2563eb;
+      --button-hover: #1d4ed8;
     }
 
     * { box-sizing: border-box; }
@@ -52,15 +54,39 @@
       flex-wrap: wrap;
       gap: 12px;
       margin-top: 16px;
+      align-items: center;
     }
 
-    select {
+    select,
+    button {
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    select {
       background: #0b1220;
       color: var(--text);
       min-width: 240px;
+    }
+
+    button {
+      background: var(--button);
+      color: white;
+      cursor: pointer;
+      min-width: 120px;
+      border: none;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: wait;
     }
 
     .stats-grid {
@@ -216,6 +242,16 @@
       .gauge-svg {
         height: 180px;
       }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      select,
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -230,6 +266,7 @@
         <select id="unitFilter">
           <option value="">All Units</option>
         </select>
+        <button id="refreshButton" type="button">Refresh</button>
       </div>
 
       <div class="stats-grid">
@@ -373,6 +410,7 @@
 
     function populateUnitFilter() {
       const select = document.getElementById("unitFilter");
+      const currentValue = select.value;
       const unitIndex = getUnitColumnIndex();
 
       select.innerHTML = '<option value="">All Units</option>';
@@ -390,6 +428,10 @@
         option.value = unit;
         option.textContent = unit;
         select.appendChild(option);
+      }
+
+      if ([...select.options].some(option => option.value === currentValue)) {
+        select.value = currentValue;
       }
     }
 
@@ -560,17 +602,29 @@
     }
 
     async function loadSheet() {
-      const res = await fetch(SHEET_CSV_URL);
-      const text = await res.text();
+      const refreshButton = document.getElementById("refreshButton");
+      refreshButton.disabled = true;
+      refreshButton.textContent = "Refreshing...";
 
-      rows = parseCSV(text);
-      headers = rows[0] || [];
+      try {
+        const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+        const text = await res.text();
 
-      populateUnitFilter();
-      applyFilters();
+        rows = parseCSV(text);
+        headers = rows[0] || [];
+
+        populateUnitFilter();
+        applyFilters();
+      } catch (error) {
+        console.error("Failed to load sheet data:", error);
+      } finally {
+        refreshButton.disabled = false;
+        refreshButton.textContent = "Refresh";
+      }
     }
 
     document.getElementById("unitFilter").addEventListener("change", applyFilters);
+    document.getElementById("refreshButton").addEventListener("click", loadSheet);
 
     loadSheet();
   </script>
