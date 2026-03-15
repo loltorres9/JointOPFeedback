@@ -12,7 +12,6 @@
       --text: #e2e8f0;
       --muted: #94a3b8;
       --border: #475569;
-      --accent: #60a5fa;
       --danger: #ef4444;
       --warn: #f59e0b;
       --ok: #22c55e;
@@ -101,14 +100,15 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
+      min-height: 250px;
     }
 
     .gauge-title {
       font-size: 14px;
       color: var(--muted);
-      min-height: 38px;
-      margin-bottom: 8px;
       line-height: 1.35;
+      min-height: 40px;
+      margin-bottom: 10px;
     }
 
     .gauge-wrap {
@@ -120,7 +120,7 @@
     .gauge-svg {
       width: 100%;
       max-width: 260px;
-      height: auto;
+      height: 170px;
       overflow: visible;
     }
 
@@ -135,15 +135,12 @@
       fill: none;
       stroke-width: 16;
       stroke-linecap: round;
-      transition: stroke-dasharray 0.4s ease, stroke 0.4s ease;
     }
 
     .gauge-needle {
       stroke: #ffffff;
       stroke-width: 3;
       stroke-linecap: round;
-      transform-origin: 100px 100px;
-      transition: transform 0.4s ease;
     }
 
     .gauge-center {
@@ -159,13 +156,14 @@
 
     .gauge-sub {
       font-size: 12px;
-      fill: var(--muted);
+      fill: #cbd5e1;
       text-anchor: middle;
     }
 
     .gauge-scale {
       font-size: 12px;
       fill: var(--muted);
+      text-anchor: middle;
     }
 
     .table-wrap {
@@ -347,6 +345,10 @@
         .trim();
     }
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
     function getUnitColumnIndex() {
       return headers.findIndex(h => normalizeText(h) === normalizeText(unitColumnName));
     }
@@ -380,11 +382,16 @@
       }
     }
 
-    function isNumericValue(value) {
-      if (value === null || value === undefined) return false;
+    function parseNumericValue(value) {
+      if (value === null || value === undefined) return null;
+
       const cleaned = String(value).trim().replace(",", ".");
-      if (cleaned === "") return false;
-      return !Number.isNaN(Number(cleaned));
+      if (cleaned === "") return null;
+
+      const num = Number(cleaned);
+      if (Number.isNaN(num)) return null;
+
+      return num;
     }
 
     function getFilteredRows() {
@@ -437,56 +444,58 @@
       return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
     }
 
-    function describeArc(cx, cy, r, startAngle, endAngle) {
-      const start = polarToCartesian(cx, cy, r, endAngle);
-      const end = polarToCartesian(cx, cy, r, startAngle);
-      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-      return [
-        "M", start.x, start.y,
-        "A", r, r, 0, largeArcFlag, 0, end.x, end.y
-      ].join(" ");
-    }
-
     function polarToCartesian(cx, cy, r, angleDeg) {
-      const angleRad = (angleDeg - 90) * Math.PI / 180.0;
+      const angleRad = (angleDeg - 90) * Math.PI / 180;
       return {
         x: cx + (r * Math.cos(angleRad)),
         y: cy + (r * Math.sin(angleRad))
       };
     }
 
-    function getNeedleRotation(avg, min = 1, max = 5) {
-      const ratio = Math.max(0, Math.min(1, (avg - min) / (max - min)));
-      return -90 + (ratio * 180);
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, endAngle);
+      const end = polarToCartesian(cx, cy, r, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+      return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+    }
+
+    function getNeedlePoint(cx, cy, length, avg, min = 1, max = 5) {
+      const safeAvg = clamp(avg, min, max);
+      const ratio = (safeAvg - min) / (max - min);
+      const angle = 180 + (ratio * 180);
+      return polarToCartesian(cx, cy, length, angle);
     }
 
     function buildGauge(title, avg, count) {
-      const color = getGaugeColor(avg);
-      const rotation = getNeedleRotation(avg);
       const min = 1;
       const max = 5;
+      const safeAvg = clamp(avg, min, max);
+      const color = getGaugeColor(safeAvg, min, max);
+
+      const bgArc = describeArc(100, 120, 70, 180, 360);
+      const valueEndAngle = 180 + (((safeAvg - min) / (max - min)) * 180);
+      const valueArc = describeArc(100, 120, 70, 180, valueEndAngle);
+
+      const needle = getNeedlePoint(100, 120, 58, safeAvg, min, max);
 
       const card = document.createElement("div");
       card.className = "gauge-card";
       card.innerHTML = `
         <div class="gauge-title">${title}</div>
         <div class="gauge-wrap">
-          <svg class="gauge-svg" viewBox="0 0 200 130" aria-label="${title} average gauge">
-            <path class="gauge-bg" d="${describeArc(100, 100, 65, 180, 360)}"></path>
-            <path class="gauge-value" d="${describeArc(100, 100, 65, 180, 360)}" style="stroke:${color};"></path>
+          <svg class="gauge-svg" viewBox="0 0 200 170" aria-label="${title} average gauge">
+            <path class="gauge-bg" d="${bgArc}"></path>
+            <path class="gauge-value" d="${valueArc}" style="stroke:${color};"></path>
 
-            <g style="transform: rotate(${rotation}deg); transform-origin: 100px 100px;">
-              <line class="gauge-needle" x1="100" y1="100" x2="100" y2="38"></line>
-            </g>
+            <line class="gauge-needle" x1="100" y1="120" x2="${needle.x}" y2="${needle.y}"></line>
+            <circle class="gauge-center" cx="100" cy="120" r="5"></circle>
 
-            <circle class="gauge-center" cx="100" cy="100" r="5"></circle>
+            <text class="gauge-score" x="100" y="110">${safeAvg.toFixed(2)}</text>
+            <text class="gauge-sub" x="100" y="128">based on ${count} answer(s)</text>
 
-            <text class="gauge-score" x="100" y="88">${avg.toFixed(2)}</text>
-            <text class="gauge-sub" x="100" y="106">based on ${count} answer(s)</text>
-
-            <text class="gauge-scale" x="28" y="103">${min}</text>
-            <text class="gauge-scale" x="170" y="103">${max}</text>
+            <text class="gauge-scale" x="28" y="126">${min}</text>
+            <text class="gauge-scale" x="172" y="126">${max}</text>
           </svg>
         </div>
       `;
@@ -506,9 +515,9 @@
         if (columnIndex === -1) continue;
 
         const numericValues = filteredRows
-          .map(row => row[columnIndex])
-          .filter(isNumericValue)
-          .map(v => Number(String(v).trim().replace(",", ".")));
+          .map(row => parseNumericValue(row[columnIndex]))
+          .filter(v => v !== null)
+          .map(v => clamp(v, 1, 5));
 
         if (!numericValues.length) continue;
 
@@ -517,7 +526,7 @@
 
         results.push({
           title: gauge.label,
-          avg,
+          avg: clamp(avg, 1, 5),
           count: numericValues.length
         });
       }
