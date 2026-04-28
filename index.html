@@ -539,6 +539,14 @@
       return indexes;
     }
 
+    function getGaugeKeyForColumnIndex(columnIndex) {
+      for (const gauge of gaugeDefinitions) {
+        const index = findQuestionColumnIndex(gauge.matchers);
+        if (index === columnIndex) return gauge.key;
+      }
+      return null;
+    }
+
     function parseNumericValue(value) {
       if (value === null || value === undefined) return null;
       const cleaned = String(value).trim().replace(",", ".");
@@ -756,17 +764,27 @@
       });
     }
 
-    function getBarColor(value) {
+    function getBarColor(value, mode = "default") {
+      if (mode === "centered") {
+        const midpoint = (gaugeMin + gaugeMax) / 2;
+        const maxDistance = (gaugeMax - gaugeMin) / 2;
+        const normalizedDistance = Math.abs(value - midpoint) / maxDistance;
+
+        if (normalizedDistance < 0.2) return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
+        if (normalizedDistance < 0.45) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
+        return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+      }
+
       const normalized = (value - gaugeMin) / (gaugeMax - gaugeMin);
       if (normalized < 0.4) return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
       if (normalized < 0.7) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
       return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
     }
 
-    function createRatingBar(value) {
+    function createRatingBar(value, mode = "default") {
       const safeValue = clamp(value, gaugeMin, gaugeMax);
       const percent = ((safeValue - gaugeMin) / (gaugeMax - gaugeMin)) * 100;
-      const color = getBarColor(safeValue);
+      const color = getBarColor(safeValue, mode);
 
       const wrapper = document.createElement("div");
       wrapper.className = "rating-wrap";
@@ -800,10 +818,14 @@
         for (const index of visibleIndexes) {
           const td = document.createElement("td");
           const numericValue = parseNumericValue(item.row[index]);
+          const gaugeKey = getGaugeKeyForColumnIndex(index);
 
           if (gaugeIndexes.has(index) && numericValue !== null) {
             td.className = "rating-cell";
-            td.appendChild(createRatingBar(numericValue));
+            td.appendChild(createRatingBar(
+              numericValue,
+              gaugeKey === "difficulty" ? "centered" : "default"
+            ));
           } else {
             td.textContent = item.row[index] ?? "";
           }
@@ -841,18 +863,28 @@
       return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
     }
 
-    function getGaugeColor(avg, min = gaugeMin, max = gaugeMax) {
+    function getGaugeColor(avg, min = gaugeMin, max = gaugeMax, mode = "default") {
+      if (mode === "centered") {
+        const midpoint = (min + max) / 2;
+        const maxDistance = (max - min) / 2;
+        const normalizedDistance = Math.abs(avg - midpoint) / maxDistance;
+
+        if (normalizedDistance < 0.2) return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
+        if (normalizedDistance < 0.45) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
+        return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+      }
+
       const normalized = (avg - min) / (max - min);
       if (normalized < 0.4) return getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
       if (normalized < 0.7) return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim();
       return getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
     }
 
-    function buildGauge(title, avg, count) {
+    function buildGauge(title, avg, count, mode = "default") {
       const min = gaugeMin;
       const max = gaugeMax;
       const safeAvg = clamp(avg, min, max);
-      const color = getGaugeColor(safeAvg, min, max);
+      const color = getGaugeColor(safeAvg, min, max, mode);
 
       const cx = 100;
       const cy = 115;
@@ -916,7 +948,8 @@
         results.push({
           title: gauge.label,
           avg: clamp(avg, gaugeMin, gaugeMax),
-          count: numericValues.length
+          count: numericValues.length,
+          mode: gauge.key === "difficulty" ? "centered" : "default"
         });
       }
 
@@ -928,7 +961,7 @@
       emptyEl.style.display = "none";
 
       for (const item of results) {
-        gaugesEl.appendChild(buildGauge(item.title, item.avg, item.count));
+        gaugesEl.appendChild(buildGauge(item.title, item.avg, item.count, item.mode));
       }
     }
 
